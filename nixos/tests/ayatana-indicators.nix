@@ -28,13 +28,14 @@ in {
       enable = true;
       packages = with pkgs; [
         ayatana-indicator-datetime
+        ayatana-indicator-display
         ayatana-indicator-messages
         ayatana-indicator-power
         ayatana-indicator-session
         ayatana-indicator-sound
       ] ++ (with pkgs.lomiri; [
         lomiri-indicator-network
-        telephony-service
+        # telephony-service # currently broken: https://github.com/NixOS/nixpkgs/pull/314043
       ]);
     };
 
@@ -95,7 +96,7 @@ in {
 
     # Now check if all indicators were brought up successfully, and kill them for later
   '' + (runCommandOverAyatanaIndicators (service: let serviceExec = builtins.replaceStrings [ "." ] [ "-" ] service; in ''
-    machine.succeed("pgrep -u ${user} -f ${serviceExec}")
+    machine.wait_until_succeeds("pgrep -u ${user} -f ${serviceExec}")
     machine.succeed("pkill -f ${serviceExec}")
   '')) + ''
 
